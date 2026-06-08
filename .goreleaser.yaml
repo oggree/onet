@@ -6,14 +6,47 @@ before:
     - go mod tidy
 
 builds:
-  - env:
-      - CGO_ENABLED=1
+  - id: linux-amd64
     goos:
       - linux
+    goarch:
+      - amd64
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target x86_64-linux-gnu
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+
+  - id: linux-arm64
+    goos:
+      - linux
+    goarch:
+      - arm64
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target aarch64-linux-gnu
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+
+  - id: darwin-amd64
+    goos:
       - darwin
     goarch:
       - amd64
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target x86_64-macos
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+
+  - id: darwin-arm64
+    goos:
+      - darwin
+    goarch:
       - arm64
+    env:
+      - CGO_ENABLED=1
+      - CC=zig cc -target aarch64-macos
     ldflags:
       - -s -w -X main.Version={{.Version}}
 
