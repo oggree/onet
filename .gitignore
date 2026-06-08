@@ -1,0 +1,19 @@
+# Binaries
+bin/
+onet
+
+# Databases and configuration
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+/etc/onet/
+
+# Temp/helper scripts
+fix.py
+fix_script.py
+fix_setup.py
+fix_verify.py
+
+# System files
+.DS_Store

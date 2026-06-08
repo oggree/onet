@@ -1,0 +1,44 @@
+# .goreleaser.yaml
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=1
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+
+brews:
+  - name: onet
+    repository:
+      owner: oggree # Put your GitHub username or organization here
+      name: homebrew-tap
+      token: "{{ .Env.GH_PAT }}"
+    directory: Formula
+    homepage: "https://github.com/oggree/onet"
+    description: "Secure, auto-configuring ingress client for exposing local environments."
+    license: "MIT"
+    install: |
+      bin.install "onet"
+    service: |
+      run [opt_bin/"onet", "run"]
+      keep_alive true
+      log_path var/"log/onet.log"
+      error_log_path var/"log/onet.err.log"

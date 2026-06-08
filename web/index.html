@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arc Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- SETUP WIZARD VIEW -->
+    <div id="setup-wizard" class="container" style="display: none;">
+        <div class="glass-panel setup-card">
+            <h2>Welcome to Onet Arc</h2>
+            <p class="subtitle">Your secure, decentralized ingress system needs initial configuration.</p>
+            
+            <div id="step-1" class="wizard-step active">
+                <h3>Do you have a domain ready for setup?</h3>
+                <p>Onet requires a root domain (e.g., example.com) connected to Cloudflare to automatically provision zero-trust tunnels.</p>
+                <div class="actions">
+                    <button id="btn-has-domain" class="btn primary">Yes, I have a domain</button>
+                    <a href="https://dash.cloudflare.com" target="_blank" class="btn secondary">No, I need to get one</a>
+                </div>
+            </div>
+
+            <div id="step-2" class="wizard-step" style="display: none;">
+                <h3>Enter your Root Domain</h3>
+                <p>Which domain will you be using for Onet?</p>
+                <input type="text" id="setup-domain" class="input-field" placeholder="e.g. oggree.com" />
+                <div class="actions">
+                    <button id="btn-next-2" class="btn primary">Next</button>
+                </div>
+            </div>
+
+            <div id="step-3" class="wizard-step" style="display: none;">
+                <h3>Cloudflare Configuration</h3>
+                <div class="instructions" style="max-height: 250px; overflow-y: auto;">
+                    <p>1. Ensure your domain's nameservers point to Cloudflare.</p>
+                    <p>2. Go to your Cloudflare Dashboard -> My Profile -> <b>API Tokens</b>.</p>
+                    <p>3. It is critical that you create a <b>User API Token</b> (Custom Token) here, NOT an "Account API Token" under "Manage Account", and NOT a Global API Key.</p>
+                    <p>4. Grant the token the following permissions to support Tunnels, DNS, and SSH Access:</p>
+                    <ul style="font-size: 0.9rem; color: #a1a1aa; padding-left: 20px; margin-top: 5px;">
+                        <li>Account DNS Settings: Read, Write</li>
+                        <li>DNS Firewall: Read, Write</li>
+                        <li>DNS View: Read, Write</li>
+                        <li>Access - Apps and Policies: Read, Revoke, Write</li>
+                        <li>Access - Apps: Read, Revoke, Write</li>
+                        <li>Access - Identity Providers: Read, Write</li>
+                        <li>Access - SSH Auditing: Read, Write</li>
+                        <li><b>Cloudflare Tunnel: Read, Write</b> (Crucial for Tunnels)</li>
+                        <li><b>Zone - DNS: Read, Write</b> (Crucial for Routing)</li>
+                    </ul>
+                </div>
+                <div class="actions">
+                    <button id="btn-next-3" class="btn primary">I have my Token</button>
+                </div>
+            </div>
+
+            <div id="step-4" class="wizard-step" style="display: none;">
+                <h3>Enter API Token</h3>
+                <p>Paste your secure Cloudflare API Token below.</p>
+                <input type="password" id="setup-token" class="input-field" placeholder="Cloudflare API Token" />
+                <div class="actions">
+                    <button id="btn-finish" class="btn primary">Complete Setup</button>
+                </div>
+            </div>
+            
+            <div id="setup-loading" class="wizard-step" style="display: none; text-align: center;">
+                <h3>Booting Services...</h3>
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-view" class="container" style="display: none;">
+        <header class="glass-header">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>Onet <span>Arc</span></h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" id="nav-overview" class="nav-link active">Overview</a></li>
+                    <li><a href="#" id="nav-tunnels" class="nav-link">Tunnels</a></li>
+                    <li><a href="#" id="nav-security" class="nav-link">Security</a></li>
+                    <li><a href="#" id="nav-settings" class="nav-link">Settings</a></li>
+                </ul>
+            </nav>
+            <div class="user-profile">
+                <button id="btn-clear-config" class="btn warning" style="margin-right: 15px; font-size: 0.8rem; padding: 0.5rem 1rem;">Clear Config (Dev)</button>
+                <div class="avatar"></div>
+                <span>Admin</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- OVERVIEW VIEW -->
+            <div id="view-overview" class="tab-view">
+                <section class="hero-section glass-panel">
+                    <h2>Network Intelligence</h2>
+                    <p>Your secure, decentralized ingress system is actively routing traffic.</p>
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <span class="label">Active Tunnels</span>
+                            <span class="value" id="tunnels-count">1</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="label">Requests / Min</span>
+                            <span class="value" id="requests-count">0</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="label">Uptime</span>
+                            <span class="value" id="uptime">100%</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="details-section">
+                    <div class="glass-panel feature-card">
+                        <h3>FRP Embedded</h3>
+                        <p>Powered by an internal Fast Reverse Proxy architecture dynamically routing your domains.</p>
+                    </div>
+                    <div class="glass-panel feature-card">
+                        <h3>SQLite Auth</h3>
+                        <p>Multi-token authentication ensures your entire organization stays securely connected.</p>
+                    </div>
+                    <div class="glass-panel feature-card">
+                        <h3>Cloudflare Edge</h3>
+                        <p>Traffic successfully tunneling through Cloudflare edge network.</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TUNNELS VIEW -->
+            <div id="view-tunnels" class="tab-view" style="display: none;">
+                <div class="glass-panel">
+                    <h3>Active Ingress Routing</h3>
+                    <p class="subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Tunnels mapped to Onet Ingress Points</p>
+                    <div class="table-container" style="overflow-x: auto;">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Service Name</th>
+                                    <th>Tunnel Hostname</th>
+                                    <th>Local Target</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tunnels-table-body">
+                                <tr>
+                                    <td>Arc Dashboard</td>
+                                    <td><span id="arc-hostname">arc.4eone.com</span></td>
+                                    <td>localhost:14080</td>
+                                    <td><span class="badge status-active">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>FRP Ingress Gate</td>
+                                    <td>*.<span id="wildcard-domain">4eone.com</span> (Wildcard)</td>
+                                    <td>localhost:8080 (FRP HTTP Vhost)</td>
+                                    <td><span class="badge status-active">Active</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECURITY VIEW (SQLite Token Management) -->
+            <div id="view-security" class="tab-view" style="display: none;">
+                <div class="grid-2col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                    <!-- Token List -->
+                    <div class="glass-panel">
+                        <h3>SQLite Active Tokens</h3>
+                        <p class="subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Manage reverse proxy keys for remote clients</p>
+                        <div class="table-container" style="overflow-x: auto; max-height: 400px;">
+                            <table class="dashboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>Organization</th>
+                                        <th>Token</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tokens-table-body">
+                                    <!-- Dynamic rows will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Add Token Form -->
+                    <div class="glass-panel">
+                        <h3>Issue Remote Token</h3>
+                        <p class="subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Generate configuration credentials for a new agent</p>
+                        <form id="form-add-token" onsubmit="return false;">
+                            <div class="form-group" style="margin-bottom: 1.25rem;">
+                                <label for="token-org" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Organization Name</label>
+                                <input type="text" id="token-org" class="input-field" placeholder="e.g. dev-team" style="margin-bottom: 0;" required />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="token-val" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Secret Token</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="token-val" class="input-field" placeholder="Generate or enter token" style="margin-bottom: 0; flex-grow: 1;" required />
+                                    <button type="button" id="btn-generate-token" class="btn secondary" style="white-space: nowrap;">Auto Gen</button>
+                                </div>
+                            </div>
+                            <button type="submit" id="btn-add-token-submit" class="btn primary" style="width: 100%;">Create & Save Token</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS VIEW (Cloudflare Token Verification) -->
+            <div id="view-settings" class="tab-view" style="display: none;">
+                <div class="glass-panel" style="margin-bottom: 2rem;">
+                    <h3>Cloudflare Configuration</h3>
+                    <p class="subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Core configuration parsed from your local config file</p>
+                    <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                        <div class="setting-item">
+                            <span class="setting-label" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">ROOT DOMAIN</span>
+                            <span class="setting-value" id="settings-domain" style="font-weight: 600; font-size: 1.1rem;">-</span>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">ACCOUNT ID</span>
+                            <span class="setting-value" id="settings-account-id" style="font-weight: 600; font-size: 1.1rem; font-family: monospace;">-</span>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem;">ZONE ID</span>
+                            <span class="setting-value" id="settings-zone-id" style="font-weight: 600; font-size: 1.1rem; font-family: monospace;">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3>Cloudflare Token Permission Audit</h3>
+                            <p class="subtitle" style="color: var(--text-muted); margin-top: 0.25rem;">Verify that your API Token has all required permissions for routing, tunnels, and Access</p>
+                        </div>
+                        <button id="btn-verify-permissions" class="btn primary">Run Permission Audit</button>
+                    </div>
+
+                    <!-- Permission Table / List -->
+                    <div id="permission-audit-container">
+                        <div class="audit-placeholder" style="text-align: center; padding: 2rem; color: var(--text-muted); border: 1px dashed var(--glass-border); border-radius: 12px;">
+                            Click the button above to run the permission verification suite.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
