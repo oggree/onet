@@ -28,8 +28,9 @@ archives:
 brews:
   - name: onet
     repository:
-      owner: oggree # Put your GitHub username or organization here
-      name: homebrew-tap
+      owner: oggree
+      name: tap
+      branch: master
       token: "{{ .Env.GH_PAT }}"
     directory: Formula
     homepage: "https://github.com/oggree/onet"
