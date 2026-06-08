@@ -16,6 +16,23 @@ When you migrate to a dedicated fiber line with a static IP in the future, you c
 
 ## Installation
 
+### Using Homebrew (Recommended)
+
+To install Onet via Homebrew on macOS or Linux:
+
+```bash
+# Add the custom tap
+brew tap oggree/tap
+
+# Install Onet
+brew install onet
+
+# Start Onet as a background service
+brew services start onet
+```
+
+### From Source (Alternative)
+
 1. Build the application from source:
    ```bash
    make build
@@ -84,7 +101,13 @@ Onet monitors `/etc/onet.yaml` for changes. Most standard application keys will 
 
 ## Uninstalling
 
-To cleanly remove the background service:
+### If installed via Homebrew:
+```bash
+brew services stop onet
+brew uninstall onet
+```
+
+### If installed from source:
 ```bash
 sudo ./bin/onet stop
 sudo ./bin/onet uninstall
